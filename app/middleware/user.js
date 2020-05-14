@@ -1,89 +1,84 @@
 //event-prime\app\middleware\eventcreator.js
 const User = require("../controllers/user.js");
+const Joi = require("joi");
 
 async function signUp(request, response, next){
+  try{
+    const {user} = request.body;
   
-  const {user} = request.body;
-  
-  if(user){
-    try{
+    if(user){
+      
+      const userSchema = Joi.object().keys({
+        email:Joi.string().email(),
+        fname:Joi.string().replace("'", "&#39;"),
+        lname:Joi.string().replace("'", "&#39;"),
+        password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
+      }).with("email", "password").with("fname", "lname")
     
-      const added = await User.signUp({email:user.e, name:user.n, password:user.pw})
-   
-     
-      return response.json(added);
-    }catch(error){
+      const result = await Joi.validate({...user}, userSchema);
     
-      next(error);
-    
+      if(result.error){
+        
+        return response.json({added:"false", message:"Validation Failed!!"})
+        
+      }else{
+        
+        const exists = await User.findUserByEmail(user.email); 
+        
+        if(!exists){
+          
+            request.body = result;
+          
+            return next();
+          
+        }else{
+          
+           return response.json({added:false, message:"User Exists"})
+          
+        }
+      }
+    }else{
+      
+      return next(new Error("Invalid Request"));
+      
     }
-  }else{
+  }catch(error){
     
-    next(new Error("Invalid request"));
+    return next(error);
     
   }
 }
 
 //Function to sign in
 async function signIn(request, response, next){
-  const passport = require("passport"),
-      LocalStrategy = require("passport-local").Strategy;
-      
-   passport.serializeUser(function(user, done){
-     
-    done(null, user.id)
-   })
-   
-   passport.deserializeUser(function(id, done){
-     
-    done(null, id);
-   })
-   
-   passport.use(new LocalStrategy({
-     usernameField:"email",
-     passwordField:"password"
-    },
-    function(email, password, done){
-     User.signIn({email}, function(error, user){
-       if(error){
-         return done(error);
-       }
-       if(!user){
-         return done(null, false, {message:"Please check your email"})
-       }
-       if(user.password !== password){
-        return done(null, false, {message:"Wrong Password."})
-       }
-       return done(null, user);
-      })
-    }
-   ))
+  const {email, password} = request.body;
   
-  try{
-    passport.authenticate("local", function(error, user, info){
-      if(error){
-      
-        return next(error);
-      }
-      if(!user){
-      
-        //return response.redirect("/signin")
-        return response.json(info)
-      }
-      request.logIn(user, (error)=>{
-      
-        if(error){
-        
-          return next(error);
-        }
- 
-        //return response.redirect("/home")
-        return response.json({message:"A user was found"})
-      })
-    })(request, response, next)
-  }catch(error){
+  if(email && password){
     
-    return next(error);
+    try{
+      
+      const userSchema = Joi.object().keys({
+        email:Joi.string().email(),
+        password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
+      }).with("email", "password")
+      
+      const result = await Joi.validate({email, password}, userSchema);
+      
+      if(result.error){
+        
+        return response.json({message:"Please chek your credentials."});
+        
+      }else{
+        
+        return next();
+        
+      }
+      
+    }catch(error){
+      
+      return next(error);
+      
+    }
     
   }
 }
@@ -94,10 +89,24 @@ async function createEvent(request, response, next){
   if(newEvent){
     try{
       
-      const created = await User.createNewEvent(request.user, newEvent);
+      const eventSchema = Joi.object().keys({
+        name:Joi.string().regex(/^[a-zA-Z0-9@\s]/)
+      })
+    
+      const result = await Joi.validate({...newEvent}, eventSchema);
+    
+      if(result.error){
       
-      return response.json(created);
+        return response.json({created:false, message:"Event not created"});
       
+      }else{
+      
+        request.body = result;
+      
+        return next();
+      
+     }
+  
     }catch(error){
       
       return next(error);

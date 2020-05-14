@@ -1,0 +1,2 @@
+*,:after,:before{padding:0;margin:0;box-sizing:border-box}#root,body,html{height:100%}body{font-size:16px;font-family:"Century Gothic",Helvetica;color:#616161}div#root{display:grid;grid-template-columns:20% 20% 10% 10% 20% 20%}@media only screen and (max-width:600px){div#root{grid-template-columns:10% 10% 10% 10% 10% 10% 10% 10% 10% 10%}}
+/*# sourceMappingURL=main.b52e0f4e.chunk.css.map */
