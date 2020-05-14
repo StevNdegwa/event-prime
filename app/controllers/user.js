@@ -6,26 +6,15 @@ class User{
   
     try{
       
-      const result = await db.query(`SELECT * FROM _user.e_creator WHERE email = '${email}'`);
-      
-      if(result.rowsAffected[0] > 0){ //If user exists
-        
-        if(callback){
-          
-          return callback(null, result.recordset[0])
-          
-        }
-        
-        return result.recordset[0];
-      }
+      const user = await db.users.find().where(email);
       
       if(callback){
-        
-        return callback();
-        
+       
+        return callback(null, user)
+       
       }
       
-      return false;
+      return user;
       
     }catch(error){
       
@@ -37,11 +26,11 @@ class User{
   static async addUser(request, response, next){
    try{
      
-     const user = request.body;
+    const user = request.body;
      
-    const result = await db.query(`INSERT INTO _user.e_creator (email, name, password) VALUES('${user.email}', '${user.name}', '${user.password}')`);
+    const result = await db.users.add(user);
     
-    if(result.rowsAffected[0] > 0){
+    if(result > 0){
         
       return response.json({added:true, message:"Signup successfull"});
         
@@ -131,9 +120,9 @@ class User{
       
       const newEvent = request.body;
     
-      const result = await db.query(`INSERT INTO _event.events (creatorid, name) VALUES(${request.user}, '${newEvent.name}')`)
+      const result = await db.events.add(request.user, newEvent)
       
-      if(result.rowsAffected[0] > 0){
+      if(result > 0){
         
         return response.json({created:true, message:"Event Successfully created"});
         

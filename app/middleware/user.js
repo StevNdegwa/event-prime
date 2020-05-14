@@ -8,12 +8,26 @@ async function signUp(request, response, next){
   
     if(user){
       
+      if(user.email !== user.confirmEmail){
+        
+        return response.json({added:false, message:"Emails do not match."});
+        
+      }
+      
+      if(user.password !== user.confirmPassword){
+        
+        return response.json({added:false, message:"Passwordd do not match."});
+        
+      }
+      
       const userSchema = Joi.object().keys({
         email:Joi.string().email(),
+        confirmEmail:Joi.string().strip(),
         fname:Joi.string().replace("'", "&#39;"),
         lname:Joi.string().replace("'", "&#39;"),
-        password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
-      }).with("email", "password").with("fname", "lname")
+        password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
+        confirmPassword:Joi.string().strip()
+      }).with("email", ["password", "fname", "lname"]);
     
       const result = await Joi.validate({...user}, userSchema);
     
@@ -90,7 +104,20 @@ async function createEvent(request, response, next){
     try{
       
       const eventSchema = Joi.object().keys({
-        name:Joi.string().regex(/^[a-zA-Z0-9@\s]/)
+        basic:{
+          title:Joi.string().regex(/^[a-zA-Z0-9@\s]/),
+          type:Joi.number().min(1),
+          category:Joi.number().min(1)
+        },
+        location:{
+          online:Joi.number().min(0).max(1),
+          name:Joi.string().alphanum()
+        },
+        dates:{
+          start:Joi.date().min('now'),
+          end:Joi.date().min('now'),
+          frequency:Joi.number().min(1)
+        }
       })
     
       const result = await Joi.validate({...newEvent}, eventSchema);
@@ -102,9 +129,8 @@ async function createEvent(request, response, next){
       }else{
       
         request.body = result;
-      
+        
         return next();
-      
      }
   
     }catch(error){
