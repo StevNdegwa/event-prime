@@ -1,7 +1,11 @@
+//event-prime\app\index.js
 const express = require("express");
 const logger = require("morgan");
 const bp = require("body-parser");
+const passport = require("passport");
+const session = require("express-session");
 const user = require("./routes/user.js");
+const events = require("./routes/events.js");
 
 const app = express();
 
@@ -14,9 +18,13 @@ app.use((request, response, next)=>{
   next();
 })
 
+app.use(session({resave:true, saveUninitialized:true, secret:"event-prime"}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(express.static("./public"));
 app.use("/user", user);
+app.use("/events", events);
 
 app.get("/home/:user", (request, response)=>{
   const {user} = request.params;
