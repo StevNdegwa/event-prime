@@ -1,4 +1,4 @@
-//event-prime\app\controllers\eventcreator.js
+//event-prime\app\controllers\user.js
 const db = require("../models/database");
 
 class User{
@@ -23,14 +23,14 @@ class User{
     }
   }
   
-  static async addUser(request, response, next){
+  static async signUp(request, response, next){
    try{
      
     const user = request.body;
      
     const result = await db.users.add(user);
     
-    if(result > 0){
+    if(!!result){
         
       return response.json({added:true, message:"Signup successfull"});
         
@@ -49,7 +49,7 @@ class User{
 
   }
   
-  static async logIn(request, response, next){
+  static async signIn(request, response, next){
     const passport = require("passport"), LocalStrategy = require("passport-local").Strategy;
       
     passport.serializeUser(function(user, done){
@@ -113,29 +113,6 @@ class User{
       
     }
     
-  }
-  
-  static async addNewEvent(request, response, next){
-    try{
-      
-      const newEvent = request.body;
-    
-      const result = await db.events.add(request.user, newEvent)
-      
-      if(result > 0){
-        
-        return response.json({created:true, message:"Event Successfully created"});
-        
-      }else{
-        
-        return response.json({created:false, message:"Event not created."});
-      }
-      
-    }catch(error){
-      
-      return next(error);
-      
-    }
   }
 }
 
