@@ -6,8 +6,9 @@ class Events{
     try{
       
       const newEvent = request.body;
-    
-      const result = await db.events.add(request.user, newEvent)
+      const {basic, location, dates} = newEvent;
+      
+      const result = await db.table("_event.events").add(["creatorid","title","event_type","event_category","online_event","event_location","event_start_date","event_end_date","frequency"], [`'${request.user}'`,`'${basic.title}'`,`'${basic.type}'`,`'${basic.category}'`,`'${location.online}'`,`'${location.name}'`, `'${dates.start.toLocaleDateString()}'`,`'${dates.end.toLocaleDateString()}'`,`'${dates.frequency}'`]);
       
       if(!!result){
         

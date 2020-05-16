@@ -6,7 +6,7 @@ class User{
   
     try{
       
-      const user = await db.users.find().where(email);
+      const user = await db.table("_user.e_creator").find().where("email", email);
       
       if(callback){
        
@@ -28,7 +28,7 @@ class User{
      
     const user = request.body;
      
-    const result = await db.users.add(user);
+    const result = await db.table("_user.e_creator").add(["email", "name", "password"], [`'${user.email}'`,`'${user.fname+" "+ user.lname}'`, `'${user.password}'`]);
     
     if(!!result){
         
