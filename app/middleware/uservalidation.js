@@ -8,50 +8,64 @@ class UserValidation{
       const {user} = request.body;
   
       if(user){
-      
-        if(user.email !== user.confirmEmail){
         
-          return response.json({added:false, message:"Emails do not match."});
-        
-        }
-      
-        if(user.password !== user.confirmPassword){
+        if(user.password !== user.confirmPassword){ //Password Validation
         
           return response.json({added:false, message:"Passwordd do not match."});
         
-        }
-      
-        const userSchema = Joi.object().keys({
-          email:Joi.string().email(),
-          confirmEmail:Joi.string().strip(),
-          fname:Joi.string().replace("'", "&#39;"),
-          lname:Joi.string().replace("'", "&#39;"),
-          password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
-          confirmPassword:Joi.string().strip()
-        }).with("email", ["password", "fname", "lname"]);
-    
-        const result = await Joi.validate({...user}, userSchema);
-    
-        if(result.error){
+        }//Password Validation
         
-          return response.json({added:"false", message:"Validation Failed!!"})
+        if(user.email !== user.confirmEmail){ //Email Validation
+        
+          return response.json({added:false, message:"Emails do not match."});
         
         }else{
-        
-          const exists = await User.findUserByEmail(user.email); 
-        
-          if(!exists){
           
-            request.body = result;
+          try{
+            
+            var email = await Joi.validate(user.email, Joi.string().email());
           
-            return next();
+            if(email){
+            
+              const exists = await User.findUserByEmail(email); 
+            
+              if(!!exists){
           
-          }else{
+                return response.json({added:false, message:"User Exists"})
           
-           return response.json({added:false, message:"User Exists"})
-          
+              }
+            }
+            
+          }catch(error){
+            
+            return response.json({added:false, message:"Invalid Email"})
+            
           }
-        }
+        }//Email Validation
+      
+        try{//Other data validation
+          const userSchema = Joi.object().keys({
+            fname: Joi.string().replace("'", "&#39;"),
+            lname: Joi.string().replace("'", "&#39;"),
+            password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
+          }).with("email", ["password", "fname", "lname"]);
+        
+          const {fname,lname,password} = user;
+        
+          const u = await Joi.validate({fname, lname, password}, userSchema);
+    
+          if(!u.error){
+          
+            request.body = {...u, email:user.email};
+          
+          return next();
+          }
+        }catch(error){
+          
+          return response.json({added:false, message:"Invalid Details."})
+          
+        }//Other data validation
+        
       }else{
       
         return next(new Error("Invalid Request"));
@@ -63,6 +77,7 @@ class UserValidation{
       
     }
   }
+  
   //Function to sign in
   static async currentUser(request, response, next){
     const {email, password} = request.body;
