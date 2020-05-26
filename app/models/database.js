@@ -12,40 +12,24 @@ const config = {
 }
 
 class Database{
-   static users = {
-     find:()=>{
-       return {
-         where:async (email)=>{
-           var result = await Database.query(`SELECT * FROM _user.e_creator WHERE email = '${email}'`);
-           return result.recordset[0];
-         }
-       }
-     },
-     add:async (user)=>{
-       var result = await Database.query(`INSERT INTO _user.e_creator (email, name, password) VALUES('${user.email}','${user.fname+" "+ user.lname}', '${user.password}')`);
-       return result.rowsAffected[0];
-     }
-   }
-   
-   static events = {
-     find:()=>{
-       return {
-         where:async (email)=>{
-           var result = await Database.query(`SELECT * FROM _event.events WHERE id = '${id}'`);
-           
-           return result.recordset[0];
-         }
-       }
-     },
-     add:async (user_id, newEvent)=>{
-       const {basic, location, dates} = newEvent;
-       
-       var result = await Database.query(`INSERT INTO _event.events (creatorid, title, event_type, event_category, online_event, event_location, event_start_date, event_end_date, frequency) VALUES ('${user_id}', '${basic.title}', '${basic.type}', '${basic.category}', '${location.online}', '${location.name}', '${dates.start.toLocaleDateString()}', '${dates.end.toLocaleDateString()}', '${dates.frequency}')`);
-       
-       return result.rowsAffected[0];
-     }
-   }
-   
+  static table(t){
+    
+    return {
+      find:()=>{
+        return {
+          where: async (c,v)=>{
+            var result = await Database.query(`SELECT * FROM ${t} WHERE ${c} = '${v}'`);
+            return result.recordset[0];
+          }
+        }
+      },
+      add: async (columns, values)=>{
+        var result = await Database.query(`INSERT INTO ${t} (${columns}) VALUES (${values})`)
+        return result.rowsAffected[0];
+      }
+    }
+  }
+  
   static query(query){
     
     return mssql.connect(config).then((conn)=>{
