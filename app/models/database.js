@@ -17,9 +17,13 @@ class Database{
     return {
       find:()=>{
         return {
+          all: async ()=>{
+            var result = await Database.query(`SELECT * FROM ${t}`);
+            return result.recordset;
+          },
           where: async (c,v)=>{
             var result = await Database.query(`SELECT * FROM ${t} WHERE ${c} = '${v}'`);
-            return result.recordset[0];
+            return result.recordset;
           }
         }
       },
