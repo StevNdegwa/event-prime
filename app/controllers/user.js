@@ -6,15 +6,15 @@ class User{
   
     try{
       
-      const user = await db.table("_user.e_creator").find().where("email", email);
+      const users = await db.table("_user.e_creator").find().where("email", email);
       
       if(callback){
        
-        return callback(null, user)
+        return callback(null, users[0])
        
       }
       
-      return user;
+      return users[0];
       
     }catch(error){
       
@@ -92,7 +92,6 @@ class User{
         }
         if(!user){
       
-          //return response.redirect("/signin")
           return response.json(info)
         }
         request.logIn(user, (error)=>{
@@ -102,7 +101,7 @@ class User{
             return next(error);
           }
  
-          return response.redirect("/home/"+user.email)
+          return response.redirect("/user/home/"+user.email)
         })
       
       })(request, response, next)

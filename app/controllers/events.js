@@ -25,6 +25,37 @@ class Events{
       
     }
   }
+  
+  static async getUserEvents(request, response, next){
+    const user = request.user || request.query.user;
+    try{
+      
+      if(user){
+        
+        const events = await db.table("_event.events").find().where("creatorid", request.user);
+        response.json({events})
+        
+      }else{
+        //redirect to login page
+        response.redirect("/user");
+      }
+      
+    }catch(error){
+      next(error);
+    }
+  }
+  
+  static async getAllEvents(request, response, next){
+    
+    try{
+      
+      const events = await db.table("_event.events").find().all();
+      response.json({events})
+      
+    }catch(error){
+      next(error);
+    }
+  }
 }
 
 module.exports = Events;

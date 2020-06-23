@@ -26,11 +26,6 @@ app.use(express.static("./public"));
 app.use("/user", user);
 app.use("/events", events);
 
-app.get("/home/:user", (request, response)=>{
-  const {user} = request.params;
-  return response.json({message:"Welcome Home "+user});
-})
-
 app.use((request, response)=>{
   return response.status(404).json({message:"Page Not Found."});
 })
