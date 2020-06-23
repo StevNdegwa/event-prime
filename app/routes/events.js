@@ -3,7 +3,7 @@ const express = require("express");
 const Events = require("../controllers/events.js");
 const EventsValidation = require("../middleware/eventsvalidation.js");
 
-const app = express();
+const app = express.Router();
 
 app.put("/new", EventsValidation.newEvent, Events.addNewEvent);
 app.get("/user", Events.getUserEvents);
