@@ -6,9 +6,10 @@ id BIGINT IDENTITY PRIMARY KEY NOT NULL,
 email VARCHAR(50) NOT NULL ,
 name VARCHAR(100) NOT NULL ,
 password VARCHAR(50) NOT NULL,
-role SMALLINT NOT NULL,
-CHECK(role in (1,2,3)) --1 = SuperAdmin, 2 = Admin, 3 = client 
+role VARCHAR(15) NOT NULL,
+CHECK(role in ('SUPERADMIN', 'ADMIN', 'CLIENT'))
 )
+
 
 CREATE TABLE _event.events(
 id BIGINT IDENTITY PRIMARY KEY NOT NULL,

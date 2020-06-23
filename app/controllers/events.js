@@ -26,14 +26,15 @@ class Events{
   }
   
   static async getUserEvents(request, response, next){
-    const user = request.user;
     try{
-      console.log(user)
+      const id = request.params.id || request.user.id;
+      
       if(user){
-        const events = await db.table("_event.events").find().where("creatorid", request.user.id);
-        return response.json({events})
         
+        const events = await db.table("_event.events").find().where("creatorid", id);
+        return response.json({events});
       }else{
+        
         //redirect to login page
         return response.redirect("/user");
       }

@@ -50,7 +50,7 @@ class UserValidation{
             fname: Joi.string().replace("'", "&#39;"),
             lname: Joi.string().replace("'", "&#39;"),
             password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
-            role: Joi.number().integer().min(1).max(3)
+            role: Joi.string().allow("SUPERADMIN", "ADMIN", "CLIENT")
           })
           
           const {fname, lname, password, role} = user;
