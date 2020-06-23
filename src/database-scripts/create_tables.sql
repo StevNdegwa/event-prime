@@ -1,16 +1,18 @@
 USE EVENTPRIME
 GO
 
-CREATE TABLE _user.e_creator(
+CREATE TABLE _user.users(
 id BIGINT IDENTITY PRIMARY KEY NOT NULL,
-email VARCHAR(50),
-name VARCHAR(100),
-password VARCHAR(50)
+email VARCHAR(50) NOT NULL ,
+name VARCHAR(100) NOT NULL ,
+password VARCHAR(50) NOT NULL,
+role SMALLINT NOT NULL,
+CHECK(role in (1,2,3)) --1 = SuperAdmin, 2 = Admin, 3 = client 
 )
 
 CREATE TABLE _event.events(
 id BIGINT IDENTITY PRIMARY KEY NOT NULL,
-creatorid BIGINT FOREIGN KEY REFERENCES _user.e_creator(id),
+creatorid BIGINT FOREIGN KEY REFERENCES _user.users(id),
 name VARCHAR(250)
 )
 

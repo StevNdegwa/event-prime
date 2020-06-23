@@ -6,7 +6,7 @@ class User{
   
     try{
       
-      const users = await db.table("_user.e_creator").find().where("email", email);
+      const users = await db.table("_user.users").find().where("email", email);
       
       if(callback){
        
@@ -28,7 +28,7 @@ class User{
      
     const user = request.body;
      
-    const result = await db.table("_user.e_creator").add(["email", "name", "password"], [`'${user.email}'`,`'${user.fname+" "+ user.lname}'`, `'${user.password}'`]);
+    const result = await db.table("_user.users").add(["email", "name", "password", "role"], [`'${user.email}'`,`'${user.fname+" "+ user.lname}'`, `'${user.password}'`, `'${user.role}'`]);
     
     if(!!result){
         
@@ -54,12 +54,12 @@ class User{
       
     passport.serializeUser(function(user, done){
      
-      done(null, user.id)
+      done(null, {id:user.id, role:user.role})
     })
    
-    passport.deserializeUser(function(id, done){
+    passport.deserializeUser(function(user, done){
      
-      done(null, id);
+      done(null, user);
     })
    
     passport.use(new LocalStrategy({

@@ -3,7 +3,9 @@ const Joi = require("joi");
 const User = require("../controllers/user");
 
 class UserValidation{
+  
   static async newUser(request, response, next){
+    
     try{
       const {user} = request.body;
   
@@ -11,7 +13,7 @@ class UserValidation{
         
         if(user.password !== user.confirmPassword){ //Password Validation
         
-          return response.json({added:false, message:"Passwordd do not match."});
+          return response.json({added:false, message:"Password do not match."});
         
         }//Password Validation
         
@@ -47,19 +49,17 @@ class UserValidation{
           const userSchema = Joi.object().keys({
             fname: Joi.string().replace("'", "&#39;"),
             lname: Joi.string().replace("'", "&#39;"),
-            password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
-          }).with("email", ["password", "fname", "lname"]);
-        
-          const {fname,lname,password} = user;
-        
-          const u = await Joi.validate({fname, lname, password}, userSchema);
-    
-          if(!u.error){
+            password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
+            role: Joi.number().integer().min(1).max(3)
+          })
           
-            request.body = {...u, email:user.email};
+          const {fname, lname, password, role} = user;
+          
+          const u = await Joi.validate({fname, lname, password, role}, userSchema);
+          
+          request.body = {...u, email:user.email};
           
           return next();
-          }
         }catch(error){
           
           return response.json({added:false, message:"Invalid Details."})
@@ -80,6 +80,7 @@ class UserValidation{
   
   //Function to sign in
   static async currentUser(request, response, next){
+    
     const {email, password} = request.body;
   
     if(email && password){
@@ -93,21 +94,17 @@ class UserValidation{
       
         const result = await Joi.validate({email, password}, userSchema);
       
-        if(result.error){
-        
-          return response.json({message:"Please chek your credentials."});
-        
-        }else{
-        
-          return next();
-        
-        }
+        return next();
       
       }catch(error){
       
-        return next(error);
+        return response.json({message:"Incorrect Login details"});
       
       } 
+    }else{
+      
+      return next(new Error("Invalid Request"));
+      
     }
   }
 }

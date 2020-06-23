@@ -4,11 +4,10 @@ const db = require("../models/database");
 class Events{
   static async addNewEvent(request, response, next){
     try{
-      
       const newEvent = request.body;
       const {basic, location, dates} = newEvent;
       
-      const result = await db.table("_event.events").add(["creatorid","title","event_type","event_category","online_event","event_location","event_start_date","event_end_date","frequency"], [`'${request.user}'`,`'${basic.title}'`,`'${basic.type}'`,`'${basic.category}'`,`'${location.online}'`,`'${location.name}'`, `'${dates.start.toLocaleDateString()}'`,`'${dates.end.toLocaleDateString()}'`,`'${dates.frequency}'`]);
+      const result = await db.table("_event.events").add(["creatorid","title","event_type","event_category","online_event","event_location","event_start_date","event_end_date","frequency"], [`'${request.user.id}'`,`'${basic.title}'`,`'${basic.type}'`,`'${basic.category}'`,`'${location.online}'`,`'${location.name}'`, `'${dates.start.toLocaleDateString()}'`,`'${dates.end.toLocaleDateString()}'`,`'${dates.frequency}'`]);
       
       if(!!result){
         
@@ -27,21 +26,20 @@ class Events{
   }
   
   static async getUserEvents(request, response, next){
-    const user = request.user || request.query.user;
+    const user = request.user;
     try{
-      
+      console.log(user)
       if(user){
-        
-        const events = await db.table("_event.events").find().where("creatorid", request.user);
-        response.json({events})
+        const events = await db.table("_event.events").find().where("creatorid", request.user.id);
+        return response.json({events})
         
       }else{
         //redirect to login page
-        response.redirect("/user");
+        return response.redirect("/user");
       }
       
     }catch(error){
-      next(error);
+      return next(error);
     }
   }
   
@@ -50,10 +48,10 @@ class Events{
     try{
       
       const events = await db.table("_event.events").find().all();
-      response.json({events})
+      return response.json({events})
       
     }catch(error){
-      next(error);
+      return next(error);
     }
   }
 }
