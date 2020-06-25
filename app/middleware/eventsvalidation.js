@@ -26,20 +26,13 @@ class EventsValidation{
     
         const result = await Joi.validate({...newEvent}, eventSchema);
     
-        if(result.error){
-      
-          return response.json({created:false, message:"Event not created"});
-      
-        }else{
-      
-          request.body = result;
+        request.body = result;
         
-          return next();
-        }
+        return next();
   
       }catch(error){
       
-        return next(error);
+        return response.json({created:false, message:"Event not created. Invalid details"});
       
       }
     }else{
