@@ -3,14 +3,10 @@ const Joi = require("joi");
 const User = require("../controllers/user");
 
 class UserValidation{
-  
   static async newUser(request, response, next){
-    
     try{
       const {user} = request.body;
-  
       if(user){
-        
         if(user.password !== user.confirmPassword){ //Password Validation
         
           return response.json({added:false, message:"Password do not match."});
@@ -26,20 +22,14 @@ class UserValidation{
           try{
             
             var email = await Joi.validate(user.email, Joi.string().email());
-          
-            if(email){
             
-              const exists = await User.findUserByEmail(email); 
+            const exists = await User.findUserByEmail(email);
             
-              if(!!exists){
-          
-                return response.json({added:false, message:"User Exists"})
-          
-              }
+            if(!!exists){
+              return response.json({added:false, message:"User Exists"})
             }
             
           }catch(error){
-            
             return response.json({added:false, message:"Invalid Email"})
             
           }
@@ -50,7 +40,7 @@ class UserValidation{
             fname: Joi.string().replace("'", "&#39;"),
             lname: Joi.string().replace("'", "&#39;"),
             password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
-            role: Joi.string().allow("SUPERADMIN", "ADMIN", "CLIENT")
+            role: Joi.string().valid("SUPERADMIN", "ADMIN", "CLIENT")
           })
           
           const {fname, lname, password, role} = user;
@@ -61,7 +51,6 @@ class UserValidation{
           
           return next();
         }catch(error){
-          
           return response.json({added:false, message:"Invalid Details."})
           
         }//Other data validation
