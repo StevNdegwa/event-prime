@@ -29,3 +29,15 @@ frequency SMALLINT NOT NULL
 
 ALTER TABLE _event.events 
 DROP COLUMN name
+
+CREATE TABLE _event.tickets(
+id BIGINT IDENTITY PRIMARY KEY NOT NULL,
+name VARCHAR(60) NOT NULL,
+eventid BIGINT FOREIGN KEY REFERENCES _event.events(id),
+type VARCHAR(10) NOT NULL,
+quantity INT NOT NULL,
+price FLOAT NOT NULL
+)
+
+ALTER TABLE _event.tickets
+ADD CHECK(type in ('FREE','PAID'));
