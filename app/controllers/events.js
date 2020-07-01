@@ -12,23 +12,19 @@ class Events{
       if(!!result){
         
         return response.json({created:true, message:"Event Successfully created"});
-        
       }else{
         
         return response.json({created:false, message:"Event not created."});
       }
-      
     }catch(error){
       
       return next(error);
-      
     }
   }
   
   static async getUserEvents(request, response, next){
     try{
       const id = request.params.id || request.user.id;
-      
       if(user){
         
         const events = await db.table("_event.events").find().where("creatorid", id);
@@ -38,14 +34,12 @@ class Events{
         //redirect to login page
         return response.redirect("/user");
       }
-      
     }catch(error){
       return next(error);
     }
   }
   
   static async getAllEvents(request, response, next){
-    
     try{
       
       const events = await db.table("_event.events").find().all();
