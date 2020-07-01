@@ -45,8 +45,6 @@ class User{
      return next(error);
      
    }
-    
-
   }
   
   static async signIn(request, response, next){

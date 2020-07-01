@@ -28,7 +28,7 @@ class Database{
         }
       },
       add: async (columns, values)=>{
-        var result = await Database.query(`INSERT INTO ${t} (${columns}) VALUES (${values})`)
+        var result = await Database.query(`INSERT INTO ${t} (${columns}) VALUES (${values})`);
         return result.rowsAffected[0];
       }
     }
@@ -38,7 +38,7 @@ class Database{
     
     return mssql.connect(config).then((conn)=>{
       
-      return conn.request().query(query)
+      return conn.request().query(query);
       
     })
   }
