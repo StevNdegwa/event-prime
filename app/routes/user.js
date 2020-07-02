@@ -13,6 +13,7 @@ app.get("/home/:user", (request, response)=>{
   return response.json({message:"Welcome Home "+user});
 })
 app.put("/signup", UserValidation.newUserSignup, User.signUp);
+app.get("/create-account/:token", User.validateSignupToken);
 app.put("/create-account/:token", UserValidation.newUserCreateAccount, User.createAccount);
 app.post("/signin", UserValidation.currentUser, User.signIn);
 

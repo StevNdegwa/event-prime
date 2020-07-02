@@ -41,7 +41,7 @@ class UserValidation{
         return response.json({created:false, message:"Passwords not identical."});
       }
       
-      const valid = await User.validateSignupToken(token, user.email);
+      const valid = await User.authenticateSignupToken(token, user.email);
       
       if(!valid){
         return response.json({created:false, message:"Invalid signup token"});

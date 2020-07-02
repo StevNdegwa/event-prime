@@ -1,5 +1,9 @@
 //event-prime\app\controllers\user.js
 const {v4: uuidv4} = require("uuid");
+const bcrypt = require("bcrypt");
+const asyncc = require("async");
+const passport = require("passport");
+const {Strategy:LocalStrategy} = require("passport-local");
 const db = require("../models/database");
 const EmailService = require("../helpers/emailservice");
 
@@ -50,7 +54,7 @@ class User{
    }
   }
   
-  static async validateSignupToken(token, email){
+  static async authenticateSignupToken(token, email){
     const [result] = await db.table("_user.validation_tokens").find().where("token", token);
     
     if(!!result){
@@ -61,25 +65,50 @@ class User{
     return false;
   }
   
+  static async validateSignupToken(request, response, next){
+    try{
+      const [result] = await db.table("_user.validation_tokens").find().where("token", token);
+    
+      if(!!result){
+        return response.json({valid:true, message:"Token is valid"});
+      }
+      return response.json({valid:false, message:"Token is invalid"});
+    }catch(error){
+      return next(error)
+    }
+  }
+  
   static async createAccount(request, response, next){
    try{
     const user = request.body;
-     
-    const result = await db.table("_user.users").add(["email", "name", "password", "role"], [`'${user.email}'`,`'${user.fname+" "+ user.lname}'`, `'${user.password}'`, `'${user.role}'`]);
+    let {password, email, fname, lname, role} = user;
     
-    if(!!result){
-      return response.json({added:true, message:"Signup successfull"});
-    }else{
-      return response.json({added:false, message:"Signup failed"});
-    }
+    return asyncc.waterfall([
+      function(callback){
+        bcrypt.hash(password, 10, function(error, hash){
+          callback(error, hash);
+        })
+      },
+      function(hashedPassword, callback){
+        return db.table("_user.users").add(["email", "name", "password", "role"], [`'${email}'`,`'${fname+" "+ lname}'`, `'${hashedPassword}'`, `'${role}'`])
+        .then((result)=>{
+          callback(null, result);
+        })
+      }
+    ],
+    function(err, result){
+      if(!!result){
+        return response.json({added:true, message:"Signup successfull"});
+      }else{
+        return response.json({added:false, message:"Signup failed. Try again later"});
+      }
+    });
    }catch(error){
      return next(error);
    }
   }
   
   static async signIn(request, response, next){
-    const passport = require("passport"), LocalStrategy = require("passport-local").Strategy;
-      
     passport.serializeUser(function(user, done){
       done(null, {id:user.id, role:user.role})
     })
@@ -100,10 +129,13 @@ class User{
           if(!user){
             return done(null, false, {message:"Please check your email"})
           }
-          if(user.password !== password){
-            return done(null, false, {message:"Wrong Password."})
-          }
-          return done(null, user);
+          return bcrypt.compare(password, user.password, function(error, result){
+            if(result){
+              return done(null, user);
+            }else{
+              return done(null, false, {message:"Wrong Password."});
+            }
+          });
         })
       }
     ))
