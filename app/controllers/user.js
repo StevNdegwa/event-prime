@@ -3,31 +3,25 @@ const {v4: uuidv4} = require("uuid");
 const bcrypt = require("bcrypt");
 const asyncc = require("async");
 const passport = require("passport");
-const {Strategy:LocalStrategy} = require("passport-local");
+const {Strategy: LocalStrategy} = require("passport-local");
 const db = require("../models/database");
 const EmailService = require("../helpers/emailservice");
 
 class User{
   static async findUserByEmail(email, callback){ //Utility function to find if user exists
-    try{
-      const [user] = await db.table("_user.users").find().where("email", email);
-      if(callback){
-        return callback(null, user);
-      }
-      return user;
-    }catch(error){
-      throw error;
+    const [user] = await db.table("_user.users").find().where("email", email);
+    
+    if(callback){
+      return callback(null, user);
     }
+    return user;
   }
   
   static async signUp(request, response, next){
    try{
-    const {user} = request.body;
-    const token = uuidv4();
-    const result = await db.table("_user.validation_tokens").add(["email", "token"], [`'${user.email}'`, `'${token}'`]);
-    
-    if(!!result){
-      const sender = {
+    const {user} = request.body,
+      token = uuidv4(),
+      sender = {
         email:"investarco.ke@yahoo.com",
         name:"Event Prime",
         password:"nkhhkwdunzxfldtz"
@@ -37,29 +31,51 @@ class User{
         body:`Follow this link to create your account: http://localhost:7000/user/create-account/${token}`
       },
       emailsTo = [user.email];
-      
-      const send = await EmailService.sendEmail(sender, message, emailsTo);
-      
-      return response.json({added:true, 
-        message:"Signup successfull. We sent an email with an activation link.", 
-        link:`http://localhost:7000/user/create-account/${token}`
+    
+    return asyncc.waterfall([
+      function(callback){
+        return db.table("_user.validation_tokens").add(["email", "token"], [`'${user.email}'`, `'${token}'`])
+        .then((result)=>{
+          if(result){
+            return callback(null, result);
+          }else{
+            return callback(new Error("User Not Added"), result);
+          }
+        })
+      },
+      function(result, callback){
+        return EmailService.sendEmail(sender, message, emailsTo)
+        .then((send)=>{
+          return callback(null, send);
+        }).catch((error)=>{
+          return callback(error);
+        })
+      }
+    ],function(error, send){
+        if(!error){
+          return response.json({
+            added:true,
+            message:`Signup successfull. We sent an email to ${send.accepted} with an account activation link.`, 
+            link:`http://localhost:7000/user/create-account/${token}`
+          });
+        }else{
+          return response.json({added:false, message:"Signup failed"});
+        }
       });
-    }else{
-      return response.json({added:false, message:"Signup failed"});
-    }
    }catch(error){
-     
      return next(error);
-     
    }
   }
   
   static async authenticateSignupToken(token, email){
-    const [result] = await db.table("_user.validation_tokens").find().where("token", token);
+    let [valid] = await db.table("_user.validation_tokens").find().where("token", token);
     
-    if(!!result){
-      if(result.email === email){
-        return true;
+    if(valid){
+      if(valid.email === email){
+        const deleted = await db.table("_user.validation_tokens").remove().where("token", token);
+        if(deleted){
+          return true;
+        }
       }
     }
     return false;
@@ -103,6 +119,7 @@ class User{
         return response.json({added:false, message:"Signup failed. Try again later"});
       }
     });
+    
    }catch(error){
      return next(error);
    }
@@ -139,7 +156,6 @@ class User{
         })
       }
     ))
-    
     
     try{
       passport.authenticate("local", function(error, user, info){

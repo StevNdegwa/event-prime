@@ -30,6 +30,14 @@ class Database{
       add: async (columns, values)=>{
         var result = await Database.query(`INSERT INTO ${t} (${columns}) VALUES (${values})`);
         return result.rowsAffected[0];
+      },
+      remove:()=>{
+        return {
+          where: async (c, v)=>{
+            var result = await Database.query(`DELETE FROM ${t} WHERE ${c} = '${v}'`);
+            return result.rowsAffected[0];
+          }
+        }
       }
     }
   }

@@ -1,5 +1,6 @@
 //event-prime\app\middleware\uservalidation.js
 const Joi = require("joi");
+const bcrypt = require("bcrypt");
 const User = require("../controllers/user");
 
 class UserValidation{
