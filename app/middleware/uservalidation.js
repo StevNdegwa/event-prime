@@ -3,62 +3,28 @@ const Joi = require("joi");
 const User = require("../controllers/user");
 
 class UserValidation{
-  static async newUser(request, response, next){
+  static async newUserSignup(request, response, next){
     try{
       const {user} = request.body;
-      if(user){
-        if(user.password !== user.confirmPassword){ //Password Validation
+      try{
         
-          return response.json({added:false, message:"Password do not match."});
+        var email = await Joi.validate(user.email, Joi.string().email());
+
+      }catch(error){
         
-        }//Password Validation
+        return response.json({added:false, message:"Please use a valid email"});
+      }
         
-        if(user.email !== user.confirmEmail){ //Email Validation
-        
-          return response.json({added:false, message:"Emails do not match."});
-        
-        }else{
-          
-          try{
-            
-            var email = await Joi.validate(user.email, Joi.string().email());
-            
-            const exists = await User.findUserByEmail(email);
-            
-            if(!!exists){
-              return response.json({added:false, message:"User Exists"})
-            }
-            
-          }catch(error){
-            return response.json({added:false, message:"Invalid Email"})
-            
-          }
-        }//Email Validation
+      const exists = await User.findUserByEmail(email);
       
-        try{//Other data validation
-          const userSchema = Joi.object().keys({
-            fname: Joi.string().replace("'", "&#39;"),
-            lname: Joi.string().replace("'", "&#39;"),
-            password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
-            role: Joi.string().valid("SUPERADMIN", "ADMIN", "CLIENT")
-          })
-          
-          const {fname, lname, password, role} = user;
-          
-          const u = await Joi.validate({fname, lname, password, role}, userSchema);
-          
-          request.body = {...u, email:user.email};
-          
-          return next();
-        }catch(error){
-          return response.json({added:false, message:"Invalid Details."})
-          
-        }//Other data validation
+      if(exists){
+        
+        return response.json({added:false, message:"A user by that email already exists"});
         
       }else{
-      
-        return next(new Error("Invalid Request"));
-      
+        
+        return next();
+        
       }
     }catch(error){
     
@@ -67,32 +33,61 @@ class UserValidation{
     }
   }
   
+  static async newUserCreateAccount(request, response, next){
+    try{
+      const {user} = request.body, {token} = request.params;
+      
+      if(user.password !== user.confirmPassword){
+        return response.json({created:false, message:"Passwords not identical."});
+      }
+      
+      const valid = await User.validateSignupToken(token, user.email);
+      
+      if(!valid){
+        return response.json({created:false, message:"Invalid signup token"});
+      }
+      
+      try{//Other data validation
+        const userSchema = Joi.object().keys({
+          email: Joi.string().email(),
+          fname: Joi.string().replace("'", "&#39;"),
+          lname: Joi.string().replace("'", "&#39;"),
+          password: Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/),
+          role: Joi.string().valid("SUPERADMIN", "ADMIN", "CLIENT")
+        }).with("email", ["fname","lname","password","role"])
+        
+        const {fname, lname, password, role, email} = user;
+          
+        const validatedUser = await Joi.validate({fname, lname, password, role, email}, userSchema);
+          
+        request.body = validatedUser;
+          
+        return next();
+      }catch(error){
+        return response.json({added:false, message:"Invalid Details."});
+      }//Other data validation
+    }catch(error){
+      return next(error);
+    }
+  }
+  
   //Function to sign in
   static async currentUser(request, response, next){
-    
-    const {email, password} = request.body;
-  
-    if(email && password){
-    
-      try{
+    try{
+      const {email, password} = request.body;
       
-        const userSchema = Joi.object().keys({
-          email:Joi.string().email(),
-          password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
-        }).with("email", "password")
+      const userSchema = Joi.object().keys({
+        email:Joi.string().email(),
+        password:Joi.string().regex(/^[-a-zA-Z0-9@]{8,15}$/)
+      }).with("email", "password")
       
-        const result = await Joi.validate({email, password}, userSchema);
+      const result = await Joi.validate({email, password}, userSchema);
       
-        return next();
+      return next();
       
-      }catch(error){
+    }catch(error){
       
-        return response.json({message:"Incorrect Login details"});
-      
-      } 
-    }else{
-      
-      return next(new Error("Invalid Request"));
+      return response.json({message:"Incorrect Login details"});
       
     }
   }

@@ -10,6 +10,10 @@ role VARCHAR(15) NOT NULL,
 CHECK(role in ('SUPERADMIN', 'ADMIN', 'CLIENT'))
 )
 
+CREATE TABLE _user.validation_tokens(
+email VARCHAR(50) NOT NULL,
+token VARCHAR(50) NOT NULL
+)
 
 CREATE TABLE _event.events(
 id BIGINT IDENTITY PRIMARY KEY NOT NULL,
