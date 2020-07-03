@@ -1,7 +1,7 @@
 //event-prime\app\controllers\user.js
 const {v4: uuidv4} = require("uuid");
 const bcrypt = require("bcrypt");
-const asyncc = require("async");
+const Async = require("async");
 const passport = require("passport");
 const {Strategy: LocalStrategy} = require("passport-local");
 const db = require("../models/database");
@@ -32,7 +32,7 @@ class User{
       },
       emailsTo = [user.email];
     
-    return asyncc.waterfall([
+    return Async.waterfall([
       function(callback){
         return db.table("_user.validation_tokens").add(["email", "token"], [`'${user.email}'`, `'${token}'`])
         .then((result)=>{
@@ -99,7 +99,7 @@ class User{
     const user = request.body;
     let {password, email, fname, lname, role} = user;
     
-    return asyncc.waterfall([
+    return Async.waterfall([
       function(callback){
         bcrypt.hash(password, 10, function(error, hash){
           callback(error, hash);

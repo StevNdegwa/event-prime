@@ -15,7 +15,7 @@ class EmailService{
   }
   
   set transporter(t){
-    this.t = Object.assign({}, this.t, t);
+    this.t =  mailer.createTransport(t);
   }
   
   static async sendEmail(user, message, emailsTo){
