@@ -1,16 +1,23 @@
 USE EVENTPRIME
 GO
 
-CREATE TABLE _user.e_creator(
+CREATE TABLE _user.users(
 id BIGINT IDENTITY PRIMARY KEY NOT NULL,
-email VARCHAR(50),
-name VARCHAR(100),
-password VARCHAR(50)
+email VARCHAR(50) NOT NULL ,
+name VARCHAR(100) NOT NULL ,
+password VARCHAR(100) NOT NULL,
+role VARCHAR(15) NOT NULL,
+CHECK(role in ('SUPERADMIN', 'ADMIN', 'CLIENT'))
+)
+
+CREATE TABLE _user.validation_tokens(
+email VARCHAR(50) NOT NULL,
+token VARCHAR(50) NOT NULL
 )
 
 CREATE TABLE _event.events(
 id BIGINT IDENTITY PRIMARY KEY NOT NULL,
-creatorid BIGINT FOREIGN KEY REFERENCES _user.e_creator(id),
+creatorid BIGINT FOREIGN KEY REFERENCES _user.users(id),
 name VARCHAR(250)
 )
 
@@ -27,3 +34,15 @@ frequency SMALLINT NOT NULL
 
 ALTER TABLE _event.events 
 DROP COLUMN name
+
+CREATE TABLE _event.tickets(
+id BIGINT IDENTITY PRIMARY KEY NOT NULL,
+name VARCHAR(60) NOT NULL,
+eventid BIGINT FOREIGN KEY REFERENCES _event.events(id),
+type VARCHAR(10) NOT NULL,
+quantity INT NOT NULL,
+price FLOAT NOT NULL
+)
+
+ALTER TABLE _event.tickets
+ADD CHECK(type in ('FREE','PAID'));
